@@ -1,10 +1,29 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mad_hms/firebase_options.dart';
+import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
 
-main() {
+main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  //print the document in the test collection
+  final firestore = FirebaseFirestore.instance;
+  firestore
+      .collection('test')
+      .doc('123')
+      .get()
+      .then((value) {
+        log('Document data: ${value.data()}');
+      })
+      .catchError((error) {
+        log('Error getting document: $error');
+      });
+
   runApp(
     ChangeNotifierProvider(
       create:
@@ -87,150 +106,4 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
-}
-
-//settings screen to change seed color and toggle surface color override
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  final List<Color> colorOptions = const [
-    Colors.blue,
-    Colors.red,
-    Colors.green,
-    Colors.purple,
-    Colors.orange,
-    Colors.teal,
-    Colors.pink,
-    Colors.indigo,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    // Ensure the theme provider is available
-    final themeProvider = Provider.of<M3ThemeProvider>(context, listen: false);
-    // pickedColor = themeProvider.lightColorScheme.primary;
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
-      body: Consumer<M3ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Theme Colors',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 16),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children:
-                              colorOptions.map((color) {
-                                return InkWell(
-                                  onTap:
-                                      () =>
-                                          themeProvider.changeSeedColor(color),
-                                  child: CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: color,
-                                    child:
-                                        themeProvider.seedColor == color
-                                            ? Icon(
-                                              Icons.check,
-                                              color: Colors.white,
-                                            )
-                                            : null,
-                                  ),
-                                );
-                              }).toList(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  child: ListTile(
-                    title: Text('Dark Mode'),
-                    trailing: Switch(
-                      value: themeProvider.isDarkMode,
-                      onChanged: (_) => themeProvider.toggleTheme(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-//Theme provider: using material 3 theme
-class M3ThemeProvider extends ChangeNotifier {
-  ThemeMode themeMode;
-  ColorScheme lightColorScheme;
-  ColorScheme darkColorScheme;
-  Color seedColor;
-  bool get isDarkMode =>
-      themeMode == ThemeMode.dark ||
-      themeMode == ThemeMode.system &&
-          darkColorScheme.brightness == Brightness.dark;
-
-  M3ThemeProvider({this.themeMode = ThemeMode.system, required this.seedColor})
-    : lightColorScheme = ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: Brightness.light,
-      ),
-      darkColorScheme = ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: Brightness.dark,
-      );
-
-  surfaceColorOverride() {
-    lightColorScheme = lightColorScheme; //dont override light surface color
-    darkColorScheme = darkColorScheme.copyWith(
-      surface:
-          HSLColor.fromColor(
-            darkColorScheme.surface,
-          ).withLightness(0.001).toColor(),
-    );
-
-    log('Surface color overridden with darker shade');
-    notifyListeners();
-  }
-
-  void toggleTheme() {
-    themeMode = themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    notifyListeners();
-  }
-
-  void changeSeedColor(Color seedColor) {
-    lightColorScheme = ColorScheme.fromSeed(
-      seedColor: seedColor,
-      brightness: Brightness.light,
-    );
-    darkColorScheme = ColorScheme.fromSeed(
-      seedColor: seedColor,
-      brightness: Brightness.dark,
-    );
-    surfaceColorOverride(); // Reapply surface color override
-    notifyListeners();
-  }
-
-  ThemeData get lightTheme =>
-      ThemeData(useMaterial3: true, colorScheme: lightColorScheme);
-
-  ThemeData get darkTheme =>
-      ThemeData(useMaterial3: true, colorScheme: darkColorScheme);
 }
