@@ -13,12 +13,7 @@ class _PatientHomeState extends State<PatientHome> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
-  final List<String> _titles = [
-    'My Services',
-    'Doctors',
-    'Medicines',
-    'Profile',
-  ];
+  final List<String> _titles = ['Doctors', 'Medicines', 'Profile'];
 
   @override
   void initState() {
@@ -41,8 +36,6 @@ class _PatientHomeState extends State<PatientHome> {
           });
         },
         children: [
-          // My Services Tab
-          PatientServices(),
           DoctorsAvailable(),
           // Medicines Tab
           Medicines(),
@@ -63,7 +56,6 @@ class _PatientHomeState extends State<PatientHome> {
           });
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'My Services'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Doctors'),
           BottomNavigationBarItem(
             icon: Icon(Icons.medical_services),
@@ -79,7 +71,7 @@ class _PatientHomeState extends State<PatientHome> {
               context,
             ).colorScheme.primary, // Set the selected item color
         unselectedItemColor: Colors.grey, // Set the unselected item color
-        backgroundColor: Colors.white, // Set the background color
+        // backgroundColor: Colors.white, // Set the background color
       ),
     );
   }
