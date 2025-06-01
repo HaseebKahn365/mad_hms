@@ -10,8 +10,10 @@ once the user is registered or logged in, it will take the user to the home page
 
 import 'package:flutter/material.dart';
 import 'package:mad_hms/patient/patient_home.dart';
-import 'package:mad_hms/registration/doctor_registration.dart';
+import 'package:mad_hms/patient/profile.dart';
+import 'package:mad_hms/registration/doctor_registration/doctor_registration.dart';
 import 'package:mad_hms/registration/patient_registration.dart';
+import 'package:provider/provider.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -20,7 +22,7 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-const bool isDoctorApp = false;
+const bool isDoctorApp = true;
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final PageController _pageController = PageController();
@@ -35,31 +37,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void _goToHome() {
     // You can handle navigation outside this widget, or pop to root, etc.
     // For now, just show a dialog as a placeholder.
-    showDialog(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Authenticated!'),
-            content: const Text(
-              'You are now logged in. Implement navigation as needed.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => PatientHome()),
-                  );
-                },
-                child: const Text('for test'),
-              ),
-            ],
-          ),
+    Provider.of<PatientProfileProvider>(
+      context,
+      listen: false,
+    ).saveAndRefreshProfileData(); // Ensure patient data is loaded
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const PatientHome()),
     );
   }
 

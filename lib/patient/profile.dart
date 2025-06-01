@@ -39,6 +39,9 @@ class _PatientProfileState extends State<PatientProfile> {
       listen: false,
     );
 
+    //loose focus on the text fields to avoid keyboard issues
+    FocusScope.of(context).unfocus();
+
     try {
       await profileProvider.forceUploadAllProfileData(
         newName:
@@ -141,7 +144,7 @@ class _PatientProfileState extends State<PatientProfile> {
                     await pickImage();
                   },
                   child: CircleAvatar(
-                    radius: 100,
+                    radius: 80,
                     backgroundImage:
                         selectedImage != null
                             ? FileImage(File(selectedImage!.path))
@@ -158,7 +161,15 @@ class _PatientProfileState extends State<PatientProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              //add headers
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Name:',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
               TextField(
                 decoration: InputDecoration(
                   hintText:
@@ -177,7 +188,14 @@ class _PatientProfileState extends State<PatientProfile> {
                   });
                 },
               ),
-              const SizedBox(height: 16),
+
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Age:',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
               TextField(
                 decoration: InputDecoration(
                   hintText:
@@ -196,7 +214,14 @@ class _PatientProfileState extends State<PatientProfile> {
                   });
                 },
               ),
-              const SizedBox(height: 16),
+
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Description / Bio:',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
               TextField(
                 decoration: InputDecoration(
                   hintText:
@@ -216,7 +241,13 @@ class _PatientProfileState extends State<PatientProfile> {
               ),
 
               // Contact number field
-              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Contact Number:',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
               TextField(
                 decoration: InputDecoration(
                   hintText:
@@ -385,6 +416,13 @@ class PatientProfileProvider with ChangeNotifier {
       isUploading = false;
       notifyListeners();
     }
+  }
+
+  saveAndRefreshProfileData() async {
+    log('Saving and refreshing profile data');
+    await saveToPrefs();
+    await loadFromPrefs();
+    notifyListeners();
   }
 
   Future<void> uploadProfilePicture(String filePath) async {

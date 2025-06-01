@@ -8,6 +8,7 @@ import 'package:mad_hms/notifications/get_service_key.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:mad_hms/patient/patient_home.dart';
 import 'package:mad_hms/patient/profile.dart';
+import 'package:mad_hms/registration/doctor_registration/doctor_provider.dart';
 import 'package:mad_hms/registration/registration.dart';
 import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
@@ -88,6 +89,12 @@ main() async {
           create:
               (context) =>
                   PatientProfileProvider(), // Add PatientProfileProvider
+        ),
+
+        //create doctor profile provider
+        ChangeNotifierProvider(
+          create:
+              (context) => DoctorProfileProvider(), // Add DoctorProfileProvider
         ),
       ],
       child: MyApp(),
