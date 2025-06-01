@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mad_hms/admin/dashboard.dart';
-import 'package:mad_hms/doctor/doctor_home.dart';
 import 'package:mad_hms/firebase_options.dart';
 import 'package:mad_hms/notifications/get_service_key.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
@@ -17,7 +16,7 @@ import 'package:provider/provider.dart';
 //app can be used by patients, doctors, and admin
 enum AppFor { patient, doctor, admin }
 
-AppFor currUserType = AppFor.patient;
+AppFor currUserType = AppFor.admin;
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -186,38 +185,6 @@ class _SplashScreenState extends State<SplashScreen> {
       } else {
         log(
           'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(patientProfileProvider.createdAt).inSeconds} seconds',
-        );
-        // If createdAt is less than 5 seconds ago, navigate to registration screen
-        Future.delayed(const Duration(seconds: 2), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-          );
-        });
-      }
-    } else {
-      // also do the same as above to see if doctor profile is created
-      final doctorProfileProvider = Provider.of<DoctorProfileProvider>(
-        context,
-        listen: false,
-      );
-
-      await doctorProfileProvider.initPrefs();
-
-      if (doctorProfileProvider.createdAt.isBefore(
-        DateTime.now().subtract(const Duration(seconds: 123123)),
-      )) {
-        log(
-          'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(doctorProfileProvider.createdAt).inSeconds} seconds',
-        );
-        // If createdAt is more than 5 seconds ago, navigate to home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DoctorHome()),
-        );
-      } else {
-        log(
-          'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(doctorProfileProvider.createdAt).inSeconds} seconds',
         );
         // If createdAt is less than 5 seconds ago, navigate to registration screen
         Future.delayed(const Duration(seconds: 2), () {
