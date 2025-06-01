@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io'; // Added for Platform.isAndroid check
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Added import
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
+import 'package:mad_hms/notifications/get_service_key.dart'; // Added import
 
 class NotificationService {
   static FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -119,6 +122,73 @@ class NotificationService {
         payload:
             message.data.toString(), // Optional: Pass data to handle on tap
       );
+    }
+  }
+
+  // Send notification to a specific patient using their FCM token
+  static Future<bool> sendNotificationToPatient(
+    String fcmToken,
+    String title,
+    String body, {
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      // Use Firebase Cloud Messaging HTTP v1 API
+      const String projectId = "mad-hms"; // Your Firebase project ID
+      final String fcmUrl =
+          'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
+
+      // Get the OAuth access token (server key)
+      String accessToken = await GetServerKey.getServerKey();
+
+      log('Using FCM URL: $fcmUrl');
+      log('Using token length: ${accessToken.length}');
+
+      // Prepare the message payload for v1 API format
+      final Map<String, dynamic> message = {
+        'message': {
+          'token': fcmToken,
+          'notification': {'title': title, 'body': body},
+          'data': data ?? {},
+          'android': {
+            'priority': 'high',
+            'notification': {'sound': 'default'},
+          },
+          'apns': {
+            'payload': {
+              'aps': {'sound': 'default'},
+            },
+          },
+        },
+      };
+
+      // Send the HTTP request
+      final http.Response response = await http.post(
+        Uri.parse(fcmUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken', // Use Bearer for OAuth tokens
+        },
+        body: jsonEncode(message),
+      );
+
+      // Check if the request was successful
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final int success = responseData['success'] ?? 0;
+
+        log('Notification sent successfully to token: $fcmToken');
+        log('FCM Response: ${response.body}');
+
+        return success > 0;
+      } else {
+        log('Failed to send notification. Status code: ${response.statusCode}');
+        log('Response body: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      log('Error sending notification: $e');
+      return false;
     }
   }
 

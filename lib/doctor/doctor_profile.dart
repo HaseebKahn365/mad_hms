@@ -412,7 +412,39 @@ class _DoctorProfileState extends State<DoctorProfile> {
                   },
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 150),
+
+              //enter fcm to send notification to the patient via his fcm token recieved from text field
+              TextField(
+                controller: TextEditingController(),
+                decoration: InputDecoration(
+                  labelText: 'FCM Token',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+
+                onSubmitted: (fcmToken) async {
+                  try {
+                    await NotificationService.sendNotificationToPatient(
+                      fcmToken,
+                      'Dr. Haseeb',
+                      'Your appointment is confirmed for tomorrow at 10 AM.',
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Notification sent successfully!'),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error sending notification: $e')),
+                    );
+                  }
+                },
+
+                //THIS NOTIFICATION IS SENT FROM DOCTOR TO PATIENT
+              ),
             ],
           ),
         );
