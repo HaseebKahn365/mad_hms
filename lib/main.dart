@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize the notification service
 
   NotificationService.requestPermission();
   NotificationService.getFCMToken()
@@ -28,6 +29,7 @@ main() async {
         log('Error getting server key: $error');
       });
 
+  await NotificationService.initLocalNotifications();
   runApp(
     ChangeNotifierProvider(
       create:
