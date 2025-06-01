@@ -1,81 +1,260 @@
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:provider/provider.dart';
+import 'package:tap_debouncer/tap_debouncer.dart';
 
 import 'theme_settings_widget.dart';
 
-class PatientProfile extends StatelessWidget {
+class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
+
+  @override
+  State<PatientProfile> createState() => _PatientProfileState();
+}
+
+XFile? selectedImage; //global for state to hold the image file
+
+bool settingsChanged = false;
+
+class _PatientProfileState extends State<PatientProfile> {
+  //controllers for text fields can be used if needed
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController ageController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController contactNumberController = TextEditingController();
+
+  // Function to upload changes to the profile
+  Future<void> uploadChanges() async {
+    final profileProvider = Provider.of<PatientProfileProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      await profileProvider.forceUploadAllProfileData(
+        newName: nameController.text,
+        newAge: int.tryParse(ageController.text) ?? 0,
+        newDescription: descriptionController.text,
+        newContactNumber: contactNumberController.text,
+      );
+
+      if (selectedImage != null) {
+        try {
+          await profileProvider.uploadProfilePicture(selectedImage!.path);
+          setState(() {
+            selectedImage = null; // Reset the selected image after upload
+          });
+        } catch (e) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
+          return;
+        }
+      }
+
+      setState(() {
+        settingsChanged = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
+    }
+  }
+
+  final ImagePicker picker = ImagePicker();
+
+  Future<void> pickImage() async {
+    try {
+      final XFile? imageFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+      );
+
+      if (imageFile != null) {
+        selectedImage = imageFile;
+
+        setState(() {
+          settingsChanged = true;
+        });
+
+        log(
+          'Image selected: ${selectedImage!.path} with size: ${(await selectedImage!.readAsBytes()).lengthInBytes} bytes',
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<PatientProfileProvider>(
       builder: (context, profileProvider, child) {
+        log(
+          'Using provider with data: ${profileProvider.name}, ${profileProvider.age}, ${profileProvider.description}, ${profileProvider.contactNumber}, ${profileProvider.profilePictureUrl}',
+        );
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage:
-                      profileProvider.profilePictureUrl.isNotEmpty
-                          ? NetworkImage(profileProvider.profilePictureUrl)
-                          : null,
-                  child:
-                      profileProvider.profilePictureUrl.isEmpty
-                          ? Icon(Icons.person, size: 50)
-                          : null,
+                child: GestureDetector(
+                  onTap: () async {
+                    await pickImage();
+                  },
+                  child: CircleAvatar(
+                    radius: 100,
+                    backgroundImage:
+                        selectedImage != null
+                            ? FileImage(File(selectedImage!.path))
+                            : profileProvider.profilePictureUrl.isNotEmpty
+                            ? CachedNetworkImageProvider(
+                              profileProvider.profilePictureUrl,
+                            )
+                            : null,
+                    child:
+                        selectedImage == null &&
+                                profileProvider.profilePictureUrl.isEmpty
+                            ? Icon(Icons.person, size: 50)
+                            : null,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+              TextField(
+                decoration: InputDecoration(
+                  hintText:
+                      profileProvider.name.isNotEmpty
+                          ? profileProvider.name
+                          : 'Enter your name',
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                controller: nameController,
+                onChanged: (value) {
+                  setState(() {
+                    settingsChanged = true;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: InputDecoration(
+                  hintText:
+                      profileProvider.age > 0
+                          ? profileProvider.age.toString()
+                          : 'Enter your age',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                controller: ageController,
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    settingsChanged = true;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: InputDecoration(
+                  hintText:
+                      profileProvider.description.isNotEmpty
+                          ? profileProvider.description
+                          : 'Description / bio',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                controller: descriptionController,
+                onChanged: (value) {
+                  setState(() {
+                    settingsChanged = true;
+                  });
+                },
+              ),
+
+              // Contact number field
+              const SizedBox(height: 16),
+              TextField(
+                decoration: InputDecoration(
+                  hintText:
+                      profileProvider.contactNumber.isNotEmpty
+                          ? profileProvider.contactNumber
+                          : 'Contact Number',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                controller: contactNumberController,
+                keyboardType: TextInputType.phone,
+                onChanged: (value) {
+                  setState(() {
+                    settingsChanged = true;
+                  });
+                },
+              ),
+
+              const SizedBox(height: 16),
+              if (settingsChanged)
+                SizedBox(
+                  width: 150,
+                  child: TapDebouncer(
+                    onTap: () async {
+                      await uploadChanges();
+                    },
+                    builder: (context, onTap) {
+                      return OutlinedButton(
+                        onPressed: onTap,
+                        child: const Text('Save Changes'),
+                      );
+                    },
+                  ),
+                ),
+              if (profileProvider.isUploading)
+                const SizedBox(
+                  width: 150,
+                  child: OutlinedButton(
+                    onPressed: null,
+                    child: Text('Uploading...'),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              TextButton(
                 onPressed: () {
-                  // Logic to upload profile picture
-                },
-                child: const Text('Upload Profile Picture'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Name'),
-                controller: TextEditingController(text: profileProvider.name),
-                onChanged: (value) {
-                  profileProvider.updateProfile(
-                    newName: value,
-                    newAge: profileProvider.age,
-                    newDescription: profileProvider.description,
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => Scaffold(
+                            appBar: AppBar(title: const Text('Theme Settings')),
+                            body: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: const ThemeSettingsWidget(),
+                            ),
+                          ),
+                    ),
                   );
                 },
+                child: const Text('Adjust Theme Settings'),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Age'),
-                controller: TextEditingController(text: profileProvider.age),
-                onChanged: (value) {
-                  profileProvider.updateProfile(
-                    newName: profileProvider.name,
-                    newAge: value,
-                    newDescription: profileProvider.description,
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Description'),
-                controller: TextEditingController(
-                  text: profileProvider.description,
-                ),
-                onChanged: (value) {
-                  profileProvider.updateProfile(
-                    newName: profileProvider.name,
-                    newAge: profileProvider.age,
-                    newDescription: value,
-                  );
-                },
-              ),
-              const SizedBox(height: 64),
-              const ThemeSettingsWidget(),
             ],
           ),
         );
@@ -84,134 +263,134 @@ class PatientProfile extends StatelessWidget {
   }
 }
 
-//Here the what the patient profile page will look like:
-
-/*
-
-Here he should be able to upload his profile picture, edit his personal information like name, age, gender, and contact number, description.
-
-and also adjust the app theme settings.
-
-
-  body: Consumer<M3ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Theme Colors',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        ...colorOptions.map((color) {
-                          log(
-                            'Theme color: $color and this color: ${color.toString()}',
-                          );
-                          String colorName = getColorName(color);
-                          return ListTile(
-                            leading: CircleAvatar(
-                              radius: 15,
-                              backgroundColor: color,
-                            ),
-                            title: Text(colorName),
-                            trailing:
-                                themeProvider.seedColor.toString() ==
-                                        color.toString()
-                                    ? Icon(
-                                      Icons.check,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                    )
-                                    : null,
-                            onTap: () => themeProvider.changeSeedColor(color),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1,
-                    ),
-                  ),
-                  elevation: 0,
-                  child: ListTile(
-                    title: Text('Dark Mode'),
-                    trailing: Switch(
-                      value: themeProvider.isDarkMode,
-                      onChanged: (_) => themeProvider.toggleTheme(),
-                    ),
-                  ),
-                ),
-
-
-
-
-we should create a provider to manage the profile of the user and also handle all the firebase related operations like uploading the profile picture, updating the user information, etc.
- */
-
 class PatientProfileProvider with ChangeNotifier {
   String name = '';
-  String age = '';
+  int age = 0;
+  //lets use a uuid to uniquely identify the patient using string of length 36
+  String uuid = '1234haseeeb';
   DateTime? createdAt;
   String description = '';
   String profilePictureUrl = '';
   String myFMCToken = '';
+  String contactNumber = '';
 
   List<Appointment> appointments = [];
 
   bool isUploading = false;
 
-  void updateProfile({
+  forceUploadAllProfileData({
     required String newName,
-    required String newAge,
+    required int newAge,
     required String newDescription,
-  }) {
-    name = newName;
-    age = newAge;
-    description = newDescription;
-
+    required String newContactNumber,
+  }) async {
+    //lets first upload the data and if not error has occurred then update the local state
+    isUploading = true;
     notifyListeners();
-  }
 
-  Future<void> forceDownloadProfileFromFirebase() async {
-    myFMCToken = await NotificationService.getFCMToken();
+    //create a collection in Firebase Firestore named 'patients' with doc name as uuid
+    final patientDocRef = FirebaseFirestore.instance
+        .collection('patients')
+        .doc(uuid);
 
-    // Logic to force download profile from Firebase
-    // This could involve fetching the latest data from Firestore or Realtime Database
-    // and updating the local state accordingly.
+    try {
+      await patientDocRef.set({
+        'name': newName,
+        'age': newAge,
+        'description': newDescription,
+        'contactNumber': newContactNumber,
+        'profilePictureUrl': profilePictureUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+        'myFMCToken': NotificationService.getFCMToken() ?? '',
+      }, SetOptions(merge: true));
+
+      // Update local state
+      name = newName;
+      age = newAge;
+      description = newDescription;
+      contactNumber = newContactNumber;
+    } catch (e) {
+      // Handle error
+      print('Error uploading profile data: $e');
+    } finally {
+      isUploading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> uploadProfilePicture(String filePath) async {
     isUploading = true;
     notifyListeners();
-    // Logic to upload profile picture to Firebase Storage
-    // After uploading, update the profilePictureUrl and notify listeners
-    // Example:
-    // profilePictureUrl = await uploadToFirebaseStorage(filePath);
-    isUploading = false;
-    notifyListeners();
+
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw Exception('File does not exist at path: $filePath');
+      }
+
+      log(
+        'Starting profile picture upload. File size: ${await file.length()} bytes',
+      );
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_pictures')
+          .child('$uuid.jpg');
+
+      log('Uploading to Firebase Storage path: ${storageRef.fullPath}');
+
+      final uploadTask = storageRef.putFile(file);
+
+      // Monitor upload progress
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        final progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        log('Upload progress: ${progress.toStringAsFixed(2)}%');
+      });
+
+      final snapshot = await uploadTask;
+      log(
+        'Upload completed. Total bytes transferred: ${snapshot.bytesTransferred}',
+      );
+
+      // Get download URL
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      log('Download URL obtained: $downloadUrl');
+
+      // Update Firestore document
+      final patientDocRef = FirebaseFirestore.instance
+          .collection('patients')
+          .doc(uuid);
+      // Check if document exists
+      final docSnapshot = await patientDocRef.get();
+      if (docSnapshot.exists) {
+        await patientDocRef.update({'profilePictureUrl': downloadUrl});
+      } else {
+        await patientDocRef.set({
+          'profilePictureUrl': downloadUrl,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      log('Firestore document updated/created with new profile picture URL');
+
+      // Update local state
+      profilePictureUrl = downloadUrl;
+      log('Profile picture upload process completed successfully');
+    } catch (e, stackTrace) {
+      log('Error uploading profile picture: $e');
+      log('Stack trace: $stackTrace');
+      rethrow;
+    } finally {
+      isUploading = false;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    log('Disposing PatientProfileProvider');
   }
 }
 
