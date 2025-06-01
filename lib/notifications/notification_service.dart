@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io'; // Added for Platform.isAndroid check
+import 'dart:io' show Platform; // Keep this for mobile
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // Add this import
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -72,7 +73,8 @@ class NotificationService {
     );
 
     // Create Android Notification Channel
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
+      // Modified condition
       await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
