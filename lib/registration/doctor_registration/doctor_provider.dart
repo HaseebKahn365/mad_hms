@@ -2,10 +2,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-// For Firebase Messaging Token
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -57,7 +56,9 @@ class DoctorProfileProvider with ChangeNotifier {
     uuid = _prefs!.getString('doctor_uuid') ?? const Uuid().v4();
     contactNumber = _prefs!.getString('contact_number') ?? '';
     profilePictureUrl = _prefs!.getString('profile_picture_url') ?? '';
-    myFMCToken = _prefs!.getString('fcm_token') ?? '';
+    myFMCToken =
+        _prefs!.getString('fcm_token') ??
+        NotificationService.getFCMToken().toString();
 
     final createdAtStr = _prefs!.getString('created_at');
     createdAt =
@@ -108,7 +109,7 @@ class DoctorProfileProvider with ChangeNotifier {
           .doc(uuid);
 
       // Get updated FCM token
-      myFMCToken = await getFCMToken();
+      myFMCToken = await NotificationService.getFCMToken();
 
       // Set the doctor data with merge option to update existing fields
       await doctorDocRef.set({
@@ -225,17 +226,6 @@ class DoctorProfileProvider with ChangeNotifier {
     }
   }
 
-  // Get FCM token for push notifications
-  Future<String> getFCMToken() async {
-    try {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      return fcmToken ?? '';
-    } catch (e) {
-      log('Error getting FCM token: $e');
-      return '';
-    }
-  }
-
   // Fetch doctor profile from Firebase
   Future<void> fetchProfileFromFirebase() async {
     try {
@@ -303,7 +293,7 @@ class DoctorProfileProvider with ChangeNotifier {
           .doc(uuid);
 
       // Get FCM token
-      myFMCToken = await getFCMToken();
+      myFMCToken = await NotificationService.getFCMToken();
 
       // Create the doctor document
       await doctorDocRef.set({

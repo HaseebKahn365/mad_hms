@@ -9,9 +9,10 @@ once the user is registered or logged in, it will take the user to the home page
  */
 
 import 'package:flutter/material.dart';
+import 'package:mad_hms/doctor/doctor_home.dart';
 import 'package:mad_hms/patient/patient_home.dart';
 import 'package:mad_hms/patient/profile.dart';
-import 'package:mad_hms/registration/doctor_registration/doctor_registration.dart';
+import 'package:mad_hms/registration/doctor_registration/doctor_registration_new.dart';
 import 'package:mad_hms/registration/patient_registration.dart';
 import 'package:provider/provider.dart';
 
@@ -44,6 +45,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const PatientHome()),
+    );
+  }
+
+  _goToDoctorHome() {
+    // Navigate to Doctor Home
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DoctorHome()),
     );
   }
 
@@ -206,7 +215,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             body:
                 isDoctorApp
-                    ? DoctorRegistration(onAuthenticated: _goToHome)
+                    ? DoctorRegistration(onAuthenticated: _goToDoctorHome)
                     : PatientRegistration(onAuthenticated: _goToHome),
           ),
         ],
