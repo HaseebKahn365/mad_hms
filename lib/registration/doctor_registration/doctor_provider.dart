@@ -208,22 +208,27 @@ class DoctorProfileProvider with ChangeNotifier {
       final doctorDocRef = FirebaseFirestore.instance
           .collection('doctors')
           .doc(uuid);
-
       await doctorDocRef.update({'profilePictureUrl': downloadUrl});
 
-      // Update local storage
-      profilePictureUrl = downloadUrl;
-      await saveToPrefs();
+      // Update local provider and persist
+      await updateProfilePictureUrl(downloadUrl); // Call the new method here
 
-      log('Profile picture upload process completed successfully');
-    } catch (e, stackTrace) {
+      log('Profile picture URL updated in provider and Firestore');
+    } catch (e) {
       log('Error uploading profile picture: $e');
-      log('Stack trace: $stackTrace');
-      rethrow;
+      rethrow; // Rethrow to allow UI to handle it
     } finally {
       isUploading = false;
-      notifyListeners();
+      notifyListeners(); // Notify listeners to stop showing loading indicator
     }
+  }
+
+  // New method to update profile picture URL and notify listeners
+  Future<void> updateProfilePictureUrl(String newUrl) async {
+    profilePictureUrl = newUrl;
+    await saveToPrefs(); // Persist the new URL
+    notifyListeners(); // Notify UI of changes
+    log('Profile picture URL updated locally and saved to prefs: $newUrl');
   }
 
   // Fetch doctor profile from Firebase
