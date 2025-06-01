@@ -8,6 +8,7 @@ import 'package:mad_hms/notifications/get_service_key.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:mad_hms/patient/patient_home.dart';
 import 'package:mad_hms/patient/profile.dart';
+import 'package:mad_hms/registration/registration.dart';
 import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
 
@@ -128,30 +129,13 @@ class _MyAppState extends State<MyApp> {
       home: Builder(
         builder:
             (context) =>
-                showSplashScreen ? const SplashScreen() : const HomeScreen(),
+                showSplashScreen ? const SplashScreen() : PatientHome(),
       ),
     );
   }
 }
 
 bool showSplashScreen = true;
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    //we will show the patient or doctor screen based on user type
-    if (currUserType == AppFor.patient) {
-      return const PatientHome(); // Replace with actual patient home widget
-    } else if (currUserType == AppFor.doctor) {
-      // return const DoctorHome(); // Replace with actual doctor home widget
-    } else {
-      return const AdminDashboard(); // Admin dashboard for admin user type
-    }
-    return Scaffold(body: Text('Unknown User Type'));
-  }
-}
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -164,13 +148,43 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    handleNavigation();
+  }
+
+  Future<void> handleNavigation() async {
     // Navigate to home screen after 2 seconds
-    Future.delayed(const Duration(seconds: 1), () {
+
+    // navigate to registration screen is createdAt is less than 5 seconds in the patient profile provider
+    final patientProfileProvider = Provider.of<PatientProfileProvider>(
+      context,
+      listen: false,
+    );
+
+    await patientProfileProvider.initPrefs();
+
+    if (patientProfileProvider.createdAt.isBefore(
+      DateTime.now().subtract(const Duration(seconds: 123123)),
+    )) {
+      log(
+        'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(patientProfileProvider.createdAt).inSeconds} seconds',
+      );
+      // If createdAt is more than 5 seconds ago, navigate to home screen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const PatientHome()),
       );
-    });
+    } else {
+      log(
+        'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(patientProfileProvider.createdAt).inSeconds} seconds',
+      );
+      // If createdAt is less than 5 seconds ago, navigate to registration screen
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+        );
+      });
+    }
   }
 
   @override

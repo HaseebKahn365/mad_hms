@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mad_hms/patient/profile.dart';
+import 'package:provider/provider.dart';
 
 class PatientHome extends StatefulWidget {
   const PatientHome({super.key});
@@ -18,6 +19,15 @@ class _PatientHomeState extends State<PatientHome> {
     'Medicines',
     'Profile',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    //read the patient provider and fetch the patient data by loadFromPrefs
+
+    Provider.of<PatientProfileProvider>(context, listen: false).loadFromPrefs();
+  }
 
   @override
   Widget build(BuildContext context) {

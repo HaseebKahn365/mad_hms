@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tap_debouncer/tap_debouncer.dart';
 
 import 'theme_settings_widget.dart';
@@ -39,10 +40,22 @@ class _PatientProfileState extends State<PatientProfile> {
 
     try {
       await profileProvider.forceUploadAllProfileData(
-        newName: nameController.text,
-        newAge: int.tryParse(ageController.text) ?? 0,
-        newDescription: descriptionController.text,
-        newContactNumber: contactNumberController.text,
+        newName:
+            nameController.text.isNotEmpty
+                ? nameController.text
+                : profileProvider.name,
+        newAge:
+            ageController.text.isNotEmpty
+                ? int.tryParse(ageController.text) ?? profileProvider.age
+                : profileProvider.age,
+        newDescription:
+            descriptionController.text.isNotEmpty
+                ? descriptionController.text
+                : profileProvider.description,
+        newContactNumber:
+            contactNumberController.text.isNotEmpty
+                ? contactNumberController.text
+                : profileProvider.contactNumber,
       );
 
       if (selectedImage != null) {
@@ -98,6 +111,16 @@ class _PatientProfileState extends State<PatientProfile> {
         context,
       ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    nameController.dispose();
+    ageController.dispose();
+    descriptionController.dispose();
+    contactNumberController.dispose();
+    log('Disposed of text controllers');
   }
 
   @override
@@ -264,19 +287,62 @@ class _PatientProfileState extends State<PatientProfile> {
 }
 
 class PatientProfileProvider with ChangeNotifier {
+  //we are gonna use shared preferences to store the data everytime it changes and load it
+  //when the app starts
+  SharedPreferences? _prefs;
+
   String name = '';
   int age = 0;
-  //lets use a uuid to uniquely identify the patient using string of length 36
   String uuid = '1234haseeeb';
-  DateTime? createdAt;
+  DateTime createdAt = DateTime.now();
   String description = '';
   String profilePictureUrl = '';
   String myFMCToken = '';
   String contactNumber = '';
 
   List<Appointment> appointments = [];
-
   bool isUploading = false;
+
+  // Initialize SharedPreferences
+  Future<void> initPrefs() async {
+    _prefs = await SharedPreferences.getInstance();
+    await loadFromPrefs();
+  }
+
+  // Save all data to SharedPreferences
+  Future<void> saveToPrefs() async {
+    if (_prefs == null) await initPrefs();
+
+    await _prefs!.setString('name', name);
+    await _prefs!.setInt('age', age);
+    await _prefs!.setString('uuid', uuid);
+    await _prefs!.setString('description', description);
+    await _prefs!.setString('profilePictureUrl', profilePictureUrl);
+    await _prefs!.setString('myFMCToken', myFMCToken);
+    await _prefs!.setString('contactNumber', contactNumber);
+    await _prefs!.setString('createdAt', createdAt.toIso8601String());
+  }
+
+  // Load all data from SharedPreferences
+  Future<void> loadFromPrefs() async {
+    if (_prefs == null) await initPrefs();
+
+    name = _prefs!.getString('name') ?? '';
+    age = _prefs!.getInt('age') ?? 0;
+    uuid = _prefs!.getString('uuid') ?? '1234haseeeb';
+    description = _prefs!.getString('description') ?? '';
+    profilePictureUrl = _prefs!.getString('profilePictureUrl') ?? '';
+    myFMCToken = _prefs!.getString('myFMCToken') ?? '';
+    contactNumber = _prefs!.getString('contactNumber') ?? '';
+    final createdAtStr = _prefs!.getString('createdAt');
+    createdAt = DateTime.parse(
+      createdAtStr ?? DateTime.now().toIso8601String(),
+    );
+
+    log(
+      'Loaded profile data: name: $name, age: $age, description: $description, contactNumber: $contactNumber, profilePictureUrl: $profilePictureUrl, createdAt: $createdAt',
+    );
+  }
 
   forceUploadAllProfileData({
     required String newName,
@@ -284,33 +350,35 @@ class PatientProfileProvider with ChangeNotifier {
     required String newDescription,
     required String newContactNumber,
   }) async {
-    //lets first upload the data and if not error has occurred then update the local state
+    log(
+      'Force uploading profile data with name: $newName, age: $newAge, description: $newDescription, contactNumber: $newContactNumber',
+    );
     isUploading = true;
     notifyListeners();
 
-    //create a collection in Firebase Firestore named 'patients' with doc name as uuid
     final patientDocRef = FirebaseFirestore.instance
         .collection('patients')
         .doc(uuid);
 
     try {
+      final fcmToken = await NotificationService.getFCMToken();
       await patientDocRef.set({
         'name': newName,
         'age': newAge,
         'description': newDescription,
         'contactNumber': newContactNumber,
         'profilePictureUrl': profilePictureUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-        'myFMCToken': NotificationService.getFCMToken() ?? '',
+        'createdAt': createdAt,
+        'myFMCToken': fcmToken,
       }, SetOptions(merge: true));
 
-      // Update local state
       name = newName;
       age = newAge;
       description = newDescription;
       contactNumber = newContactNumber;
+      await saveToPrefs(); // Save changes to SharedPreferences
     } catch (e) {
-      // Handle error
+      log('Error uploading profile data: $e');
       print('Error uploading profile data: $e');
     } finally {
       isUploading = false;
@@ -332,7 +400,6 @@ class PatientProfileProvider with ChangeNotifier {
         'Starting profile picture upload. File size: ${await file.length()} bytes',
       );
 
-      // Upload to Firebase Storage
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('profile_pictures')
@@ -342,7 +409,6 @@ class PatientProfileProvider with ChangeNotifier {
 
       final uploadTask = storageRef.putFile(file);
 
-      // Monitor upload progress
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
         final progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -354,15 +420,12 @@ class PatientProfileProvider with ChangeNotifier {
         'Upload completed. Total bytes transferred: ${snapshot.bytesTransferred}',
       );
 
-      // Get download URL
       final downloadUrl = await snapshot.ref.getDownloadURL();
       log('Download URL obtained: $downloadUrl');
 
-      // Update Firestore document
       final patientDocRef = FirebaseFirestore.instance
           .collection('patients')
           .doc(uuid);
-      // Check if document exists
       final docSnapshot = await patientDocRef.get();
       if (docSnapshot.exists) {
         await patientDocRef.update({'profilePictureUrl': downloadUrl});
@@ -372,10 +435,9 @@ class PatientProfileProvider with ChangeNotifier {
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
-      log('Firestore document updated/created with new profile picture URL');
 
-      // Update local state
       profilePictureUrl = downloadUrl;
+      await saveToPrefs(); // Save changes to SharedPreferences
       log('Profile picture upload process completed successfully');
     } catch (e, stackTrace) {
       log('Error uploading profile picture: $e');
@@ -385,12 +447,6 @@ class PatientProfileProvider with ChangeNotifier {
       isUploading = false;
       notifyListeners();
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    log('Disposing PatientProfileProvider');
   }
 }
 
