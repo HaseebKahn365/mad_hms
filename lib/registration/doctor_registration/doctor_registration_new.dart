@@ -80,6 +80,8 @@ class LoginView extends StatelessWidget {
         doctorProvider.name = doctorData['name'] as String;
         doctorProvider.specialization = doctorData['specialization'] as String;
         doctorProvider.contactNumber = doctorData['phone'] as String;
+        //fcmtoken
+        doctorProvider.myFMCToken = doctorData['fcmToken'] as String? ?? '';
         doctorProvider.profilePictureUrl =
             doctorData['profilePictureUrl'] as String? ?? '';
         // Save to shared preferences

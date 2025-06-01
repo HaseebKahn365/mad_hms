@@ -23,7 +23,7 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-const bool isDoctorApp = true;
+const bool isDoctorApp = false;
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final PageController _pageController = PageController();

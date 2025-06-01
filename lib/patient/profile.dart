@@ -310,6 +310,38 @@ class _PatientProfileState extends State<PatientProfile> {
                 },
                 child: const Text('Adjust Theme Settings'),
               ),
+
+              const SizedBox(height: 200),
+
+              //enter fcm to send notification to the patient via his fcm token recieved from text field
+              TextField(
+                controller: TextEditingController(),
+                decoration: InputDecoration(
+                  labelText: 'FCM Token',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+
+                onSubmitted: (fcmToken) async {
+                  try {
+                    await NotificationService.sendNotificationToPatient(
+                      fcmToken,
+                      'Patient Afifa Appointment',
+                      'I need an appointment at tomorrow at 10 AM.',
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Notification sent successfully!'),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error sending notification: $e')),
+                    );
+                  }
+                },
+              ),
             ],
           ),
         );
