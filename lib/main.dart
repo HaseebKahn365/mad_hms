@@ -8,6 +8,11 @@ import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
 
+//app can be used by patients, doctors, and admin
+enum AppFor { patient, doctor, admin }
+
+AppFor currUserType = AppFor.patient;
+
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -75,42 +80,113 @@ class _MyAppState extends State<MyApp> {
       darkTheme: Provider.of<M3ThemeProvider>(context).darkTheme,
       home: Builder(
         builder:
-            (context) => Scaffold(
-              appBar: AppBar(
-                title: Text('Project HMS'),
-                actions: [
-                  IconButton(
-                    icon: Icon(Icons.settings),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => SettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              body: SizedBox(
-                width: double.infinity,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text('Welcome to Hospital Management System'),
-                    ElevatedButton(
-                      onPressed: () {
-                        Provider.of<M3ThemeProvider>(
-                          context,
-                          listen: false,
-                        ).toggleTheme();
-                      },
-                      child: Text('Toggle Theme'),
+            (context) =>
+                showSplashScreen ? const SplashScreen() : const HomeScreen(),
+      ),
+    );
+  }
+}
+
+bool showSplashScreen = true;
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Project HMS'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => SettingsScreen()));
+            },
+          ),
+        ],
+      ),
+      body: SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('Welcome to Hospital Management System'),
+            ElevatedButton(
+              onPressed: () {
+                Provider.of<M3ThemeProvider>(
+                  context,
+                  listen: false,
+                ).toggleTheme();
+              },
+              child: Text('Toggle Theme'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Navigate to home screen after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12.0),
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8.0,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
+                child: Image.asset(
+                  'assets/images/logo.jpg',
+                  height: 240,
+                  fit: BoxFit.cover,
+                ),
               ),
+            ), // Add your logo image
+            const SizedBox(height: 24),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            const Text(
+              'Hospital Management System',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+          ],
+        ),
       ),
     );
   }

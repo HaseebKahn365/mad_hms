@@ -9,7 +9,7 @@ class SettingsScreen extends StatelessWidget {
 
   final List<Color> colorOptions = const [
     Colors.blue,
-    Colors.red,
+    Colors.lightGreen,
     Colors.green,
     Colors.purple,
     Colors.orange,
@@ -20,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
 
   String getColorName(Color color) {
     if (color == Colors.blue) return 'Blue';
-    if (color == Colors.red) return 'Red';
+    if (color == Colors.lightGreen) return 'Light Green';
     if (color == Colors.green) return 'Green';
     if (color == Colors.purple) return 'Purple';
     if (color == Colors.orange) return 'Orange';

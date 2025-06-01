@@ -1,16 +1,23 @@
 # mad_hms
 
-A new Flutter project.
+A mobile flutter app for managing hospital.
 
-## Getting Started
+## Architecture
 
-This project is a starting point for a Flutter application.
+the app will use an enum to define the type of user currently logged in.
+enum AppFor { patient, doctor, admin }
 
-A few resources to get you started if this is your first Flutter project:
+AppFor currUserType = AppFor.patient;
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Patient app:
+
+a login and registration page for patients.
+
+there is not auth just simply using the document on the firestore to create and login the user.
+
+There are gonna be 4 tabs:
+1. Home : shows profile settings, appointments and medicine orders.
+2. Doctors : shows a list of doctors with their details and a button to book an appointment.
+3. Medicines : shows a list of medicines with their details and a button to order the medicine.
+4. Profile : shows the profile of the user with a button to edit the profile.
