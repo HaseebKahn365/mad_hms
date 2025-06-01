@@ -2,9 +2,12 @@ import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mad_hms/admin/dashboard.dart';
 import 'package:mad_hms/firebase_options.dart';
 import 'package:mad_hms/notifications/get_service_key.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
+import 'package:mad_hms/patient/patient_home.dart';
+import 'package:mad_hms/patient/profile.dart';
 import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
 
@@ -17,6 +20,41 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialize the notification service
+  //if user is admin, show admin dashboard
+  if (currUserType == AppFor.admin) {
+    showSplashScreen = false; // Skip splash screen for admin
+    // Show admin dashboard
+    log('Running as Admin on Web');
+    runApp(
+      ChangeNotifierProvider(
+        create:
+            (context) => M3ThemeProvider(
+              seedColor: Colors.blue, // Seed color for the theme
+              themeMode: ThemeMode.system, // Default theme mode
+            ),
+        child: MaterialApp(
+          title: 'MAD Assignment 4 - Admin',
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeMode.system,
+          theme:
+              M3ThemeProvider(
+                seedColor: Colors.blue,
+                themeMode: ThemeMode.light,
+              ).lightTheme,
+          darkTheme:
+              M3ThemeProvider(
+                seedColor: Colors.blue,
+                themeMode: ThemeMode.dark,
+              ).darkTheme,
+          home: const AdminDashboard(
+            // Show admin dashboard
+            key: Key('admin_dashboard'),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
 
   NotificationService.requestPermission();
   NotificationService.getFCMToken()
@@ -36,12 +74,21 @@ main() async {
 
   await NotificationService.initLocalNotifications();
   runApp(
-    ChangeNotifierProvider(
-      create:
-          (context) => M3ThemeProvider(
-            seedColor: Colors.blue, // Seed color for the theme
-            themeMode: ThemeMode.system, // Default theme mode
-          ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create:
+              (context) => M3ThemeProvider(
+                seedColor: Colors.blue, // Seed color for the theme
+                themeMode: ThemeMode.system, // Default theme mode
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) =>
+                  PatientProfileProvider(), // Add PatientProfileProvider
+        ),
+      ],
       child: MyApp(),
     ),
   );
@@ -94,40 +141,15 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Project HMS'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (context) => SettingsScreen()));
-            },
-          ),
-        ],
-      ),
-      body: SizedBox(
-        width: double.infinity,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text('Welcome to Hospital Management System'),
-            ElevatedButton(
-              onPressed: () {
-                Provider.of<M3ThemeProvider>(
-                  context,
-                  listen: false,
-                ).toggleTheme();
-              },
-              child: Text('Toggle Theme'),
-            ),
-          ],
-        ),
-      ),
-    );
+    //we will show the patient or doctor screen based on user type
+    if (currUserType == AppFor.patient) {
+      return const PatientHome(); // Replace with actual patient home widget
+    } else if (currUserType == AppFor.doctor) {
+      // return const DoctorHome(); // Replace with actual doctor home widget
+    } else {
+      return const AdminDashboard(); // Admin dashboard for admin user type
+    }
+    return Scaffold(body: Text('Unknown User Type'));
   }
 }
 
@@ -143,7 +165,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Navigate to home screen after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 1), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
