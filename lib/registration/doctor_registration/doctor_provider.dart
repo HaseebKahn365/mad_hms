@@ -18,6 +18,8 @@ class DoctorProfileProvider with ChangeNotifier {
   String myFMCToken = '';
   DateTime createdAt = DateTime.now();
 
+  int doneAppointments = 0; // Number of appointments done
+
   // Appointments will store patient IDs
   List<String> appointments = [];
   bool isUploading = false;
@@ -175,6 +177,7 @@ class DoctorProfileProvider with ChangeNotifier {
 
   // Remove an appointment and sync with Firebase
   Future<void> removeAppointment(String patientId) async {
+    doneAppointments++;
     appointments.remove(patientId);
     await saveToPrefs();
 

@@ -47,7 +47,11 @@ class LoginView extends StatelessWidget {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Future<bool> authenticateDoctor(String phone, String password) async {
+  Future<bool> authenticateDoctor(
+    String phone,
+    String password,
+    BuildContext context,
+  ) async {
     await Future.delayed(const Duration(seconds: 2));
 
     // Hash the entered password using sha1
@@ -67,7 +71,21 @@ class LoginView extends StatelessWidget {
       // Document exists, check the password
       final doctorData = doctorDoc.docs.first.data();
       final dbHashedPswd = doctorData['password'] as String;
-      return hashedPassword == dbHashedPswd;
+      if (hashedPassword == dbHashedPswd) {
+        //set all the attributes in the provider
+        final doctorProvider = Provider.of<DoctorProfileProvider>(
+          context,
+          listen: false,
+        );
+        doctorProvider.name = doctorData['name'] as String;
+        doctorProvider.specialization = doctorData['specialization'] as String;
+        doctorProvider.contactNumber = doctorData['phone'] as String;
+        doctorProvider.profilePictureUrl =
+            doctorData['profilePictureUrl'] as String? ?? '';
+        // Save to shared preferences
+        await doctorProvider.saveToPrefs();
+        return true;
+      }
     }
 
     return false;
@@ -130,6 +148,7 @@ class LoginView extends StatelessWidget {
                       final isAuthenticated = await authenticateDoctor(
                         phone,
                         password,
+                        context,
                       );
                       if (isAuthenticated) {
                         onAuthenticated();

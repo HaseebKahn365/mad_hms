@@ -15,12 +15,7 @@ class _DoctorHomeState extends State<DoctorHome> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
-  final List<String> _titles = [
-    'My Dashboard',
-    'Appointments',
-    'Patients',
-    'Profile',
-  ];
+  final List<String> _titles = ['My Dashboard', 'Patients', 'Profile'];
 
   @override
   void initState() {
@@ -345,19 +340,19 @@ class DoctorAppointments extends StatelessWidget {
               _buildAppointmentStat(
                 context,
                 'Total',
-                '${doctorProvider.appointments.length}',
+                '${doctorProvider.appointments.length + doctorProvider.doneAppointments}',
                 Colors.blue,
               ),
               _buildAppointmentStat(
                 context,
                 'Upcoming',
-                '0', // Would be calculated
+                '${doctorProvider.appointments.length}', // Would be calculated
                 Colors.orange,
               ),
               _buildAppointmentStat(
                 context,
                 'Completed',
-                '0', // Would be calculated
+                '${doctorProvider.doneAppointments}', // Would be calculated
                 Colors.green,
               ),
             ],
@@ -407,23 +402,6 @@ class DoctorAppointments extends StatelessWidget {
                         );
                       },
                     ),
-          ),
-          // Add appointment button
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Add Appointment'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: () {
-                  // Show add appointment dialog
-                },
-              ),
-            ),
           ),
         ],
       ),
