@@ -492,8 +492,32 @@ class DoctorAppointments extends StatelessWidget {
   }
 }
 
-class PatientsList extends StatelessWidget {
+class PatientsList extends StatefulWidget {
   const PatientsList({super.key});
+
+  @override
+  State<PatientsList> createState() => _PatientsListState();
+}
+
+class _PatientsListState extends State<PatientsList> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -504,6 +528,7 @@ class PatientsList extends StatelessWidget {
         children: [
           // Search bar
           TextField(
+            controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search patients...',
               prefixIcon: const Icon(Icons.search),
@@ -548,7 +573,34 @@ class PatientsList extends StatelessWidget {
                   );
                 }
 
-                final patients = snapshot.data!.docs;
+                final patients =
+                    snapshot.data!.docs.where((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final name =
+                          (data['name'] ?? '').toString().toLowerCase();
+                      return _searchText.isEmpty || name.contains(_searchText);
+                    }).toList();
+
+                if (patients.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 80,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No patients found',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return ListView.builder(
                   itemCount: patients.length,
