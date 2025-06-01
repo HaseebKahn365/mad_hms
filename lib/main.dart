@@ -1,9 +1,10 @@
 import 'dart:developer';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mad_hms/firebase_options.dart';
+import 'package:mad_hms/notifications/get_service_key.dart';
+import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
 
@@ -11,17 +12,20 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  //print the document in the test collection
-  final firestore = FirebaseFirestore.instance;
-  firestore
-      .collection('test')
-      .doc('123')
-      .get()
+  NotificationService.requestPermission();
+  NotificationService.getFCMToken()
       .then((value) {
-        log('Document data: ${value.data()}');
+        log('FCM Token: $value');
       })
       .catchError((error) {
-        log('Error getting document: $error');
+        log('Error getting FCM token: $error');
+      });
+  GetServerKey.getServerKey()
+      .then((value) {
+        log('Server Key: $value');
+      })
+      .catchError((error) {
+        log('Error getting server key: $error');
       });
 
   runApp(
@@ -54,6 +58,8 @@ class _MyAppState extends State<MyApp> {
       );
       themeProvider.surfaceColorOverride();
     });
+
+    NotificationService.firebaseMessagingInit(context);
   }
 
   @override
