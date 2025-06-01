@@ -31,6 +31,30 @@ class DoctorProfileProvider with ChangeNotifier {
     await loadFromPrefs();
   }
 
+  //!Creating a logout method to clear all data and exit the app with 0
+  Future<void> logout() async {
+    if (_prefs == null) await initPrefs();
+
+    // Clear all data from SharedPreferences
+    await _prefs!.clear();
+    log('Doctor profile cleared from local storage');
+
+    // Reset all fields
+    name = '';
+    specialization = '';
+    uuid = const Uuid().v4();
+    contactNumber = '';
+    profilePictureUrl = '';
+    myFMCToken = '';
+    createdAt = DateTime.now();
+    appointments.clear();
+
+    isUploading = false;
+    saveToPrefs(); // Save the cleared state to prefs
+    notifyListeners();
+    exit(0); // Exit the app with code 0
+  }
+
   // Save all data to local storage
   Future<void> saveToPrefs() async {
     if (_prefs == null) await initPrefs();

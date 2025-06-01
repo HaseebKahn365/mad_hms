@@ -403,6 +403,11 @@ class _DoctorProfileState extends State<DoctorProfile> {
                   label: const Text('Logout'),
                   onPressed: () {
                     // Handle logout
+                    final doctorProvider = Provider.of<DoctorProfileProvider>(
+                      context,
+                      listen: false,
+                    );
+                    doctorProvider.logout();
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                 ),
@@ -412,35 +417,6 @@ class _DoctorProfileState extends State<DoctorProfile> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildDetailItem(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey.shade600, size: 20),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
-              ),
-              Text(value, style: Theme.of(context).textTheme.bodyLarge),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

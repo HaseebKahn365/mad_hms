@@ -41,8 +41,6 @@ class _DoctorHomeState extends State<DoctorHome> {
           });
         },
         children: [
-          // Dashboard Tab
-          DoctorDashboard(),
           // Appointments Tab
           DoctorAppointments(),
           // Patients Tab
@@ -65,10 +63,6 @@ class _DoctorHomeState extends State<DoctorHome> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Appointments',
           ),
@@ -80,7 +74,6 @@ class _DoctorHomeState extends State<DoctorHome> {
         ],
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed, // Use fixed for 4+ items
       ),
     );
