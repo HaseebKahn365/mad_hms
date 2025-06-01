@@ -10,6 +10,7 @@ import 'package:mad_hms/notifications/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tap_debouncer/tap_debouncer.dart';
+import 'package:uuid/uuid.dart';
 
 import 'theme_settings_widget.dart';
 
@@ -293,7 +294,7 @@ class PatientProfileProvider with ChangeNotifier {
 
   String name = '';
   int age = 0;
-  String uuid = '1234haseeeb';
+  String uuid = Uuid().v4(); // Generate a new UUID for the patient
   DateTime createdAt = DateTime.now();
   String description = '';
   String profilePictureUrl = '';

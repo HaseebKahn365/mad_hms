@@ -47,6 +47,7 @@ dependencies:
   tap_debouncer: ^2.2.0
   firebase_storage: ^12.4.6
   shared_preferences: ^2.5.3
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutter_test:
