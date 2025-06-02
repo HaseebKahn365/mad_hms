@@ -84,7 +84,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    "Welcome to HMS\n By Afifa",
+                    "Welcome to HMS\n By Haseeb",
 
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),

@@ -109,49 +109,63 @@ class MockPatient {
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
 
-  // Helper widget to create a stat card
+  // Helper widget to create a stat card with gradient background
   Widget _buildStatCard(
     String title,
     String count,
     IconData icon,
-    Color color,
+    List<Color> gradientColors,
   ) {
     return Card(
-      elevation: 4.0,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Icon(icon, size: 48.0, color: color),
-            const SizedBox(height: 10.0),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
+      elevation: 8.0,
+      shadowColor: gradientColors[0].withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(icon, size: 32.0, color: Colors.white.withOpacity(0.9)),
+                ],
               ),
-            ),
-            const SizedBox(height: 5.0),
-            Text(
-              count,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24.0,
-                color: color,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 15.0),
+              Text(
+                count,
+                style: const TextStyle(
+                  fontSize: 28.0,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildRecentAppointmentsCard(BuildContext context) {
-    // Static data for recent appointments
     final List<Map<String, String>> recentAppointments = [
       {'patient': 'Ahmed Khan', 'doctor': 'Dr. Fatima Ali', 'time': '10:00 AM'},
       {
@@ -168,31 +182,74 @@ class AdminDashboard extends StatelessWidget {
 
     return Card(
       elevation: 4.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Recent Appointments',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Appointments',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                Icon(
+                  Icons.date_range_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ],
             ),
-            const SizedBox(height: 10.0),
-            ListView.builder(
+            const SizedBox(height: 20.0),
+            ListView.separated(
               shrinkWrap: true,
-              physics:
-                  const NeverScrollableScrollPhysics(), // To disable scrolling within the card
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: recentAppointments.length,
+              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final appointment = recentAppointments[index];
                 return ListTile(
-                  leading: const Icon(Icons.event_available),
-                  title: Text(
-                    '${appointment['patient']} with ${appointment['doctor']}',
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.person_outline_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                  subtitle: Text('Time: ${appointment['time']}'),
+                  title: Text(
+                    appointment['patient']!,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    '${appointment['doctor']} • ${appointment['time']}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 6.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: Text(
+                      'Scheduled',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -203,56 +260,100 @@ class AdminDashboard extends StatelessWidget {
   }
 
   Widget _buildMedicineInventoryCard(BuildContext context) {
-    // Static data for medicine inventory
     final List<Map<String, dynamic>> medicineInventory = [
       {'name': 'Paracetamol', 'stock': 150, 'status': 'In Stock'},
       {'name': 'Amoxicillin', 'stock': 20, 'status': 'Low Stock'},
       {'name': 'Ibuprofen', 'stock': 0, 'status': 'Out of Stock'},
       {'name': 'Omeprazole', 'stock': 75, 'status': 'In Stock'},
     ];
+
     return Card(
       elevation: 4.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Medicine Inventory Status',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Medicine Inventory',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                Icon(
+                  Icons.medication_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ],
             ),
-            const SizedBox(height: 10.0),
-            ListView.builder(
+            const SizedBox(height: 20.0),
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: medicineInventory.length,
+              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final medicine = medicineInventory[index];
                 Color statusColor;
+                IconData statusIcon;
                 switch (medicine['status']) {
                   case 'In Stock':
                     statusColor = Colors.green;
+                    statusIcon = Icons.check_circle_outline;
                     break;
                   case 'Low Stock':
                     statusColor = Colors.orange;
+                    statusIcon = Icons.warning_outlined;
                     break;
                   case 'Out of Stock':
                     statusColor = Colors.red;
+                    statusIcon = Icons.error_outline;
                     break;
                   default:
                     statusColor = Colors.grey;
+                    statusIcon = Icons.help_outline;
                 }
                 return ListTile(
-                  leading: Icon(Icons.medication_outlined, color: statusColor),
-                  title: Text(medicine['name']),
-                  subtitle: Text('Stock: ${medicine['stock']}'),
-                  trailing: Text(
-                    medicine['status'],
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Icon(statusIcon, color: statusColor),
+                  ),
+                  title: Text(
+                    medicine['name'],
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Stock: ${medicine['stock']}',
                     style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 6.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: Text(
+                      medicine['status'],
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 );
@@ -267,63 +368,60 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Dashboard')),
+      appBar: AppBar(
+        title: const Text(
+          'Hospital Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // Responsive grid for stat cards
             LayoutBuilder(
               builder: (context, constraints) {
-                int crossAxisCount = 2;
-                if (constraints.maxWidth > 1200) {
-                  crossAxisCount = 4;
-                } else if (constraints.maxWidth > 600) {
-                  crossAxisCount = 2;
-                } else {
-                  crossAxisCount = 1; // Single column for very small screens
-                }
                 return GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: crossAxisCount,
+                  crossAxisCount: constraints.maxWidth > 600 ? 4 : 2,
                   crossAxisSpacing: 16.0,
                   mainAxisSpacing: 16.0,
-                  childAspectRatio:
-                      (crossAxisCount == 1) ? 3 : 1.5, // Adjust aspect ratio
+                  childAspectRatio: constraints.maxWidth > 600 ? 1.5 : 1.3,
                   children: <Widget>[
                     _buildStatCard(
                       'Total Doctors',
                       '15',
-                      Icons.medical_services,
-                      Colors.blue,
+                      Icons.medical_services_rounded,
+                      [Color(0xFF6C63FF), Color(0xFF3F3D9B)],
                     ),
                     _buildStatCard(
                       'Total Patients',
                       '250',
-                      Icons.people,
-                      Colors.green,
+                      Icons.people_alt_rounded,
+                      [Color(0xFF00B4DB), Color(0xFF0083B0)],
                     ),
                     _buildStatCard(
-                      'Upcoming Appointments',
+                      'Today\'s\nAppointments',
                       '5',
-                      Icons.calendar_today,
-                      Colors.orange,
+                      Icons.calendar_today_rounded,
+                      [Color(0xFFF6685E), Color(0xFFE53935)],
                     ),
                     _buildStatCard(
-                      'Medicines Low Stock',
+                      'Low Stock\nMedicines',
                       '3',
-                      Icons.medication,
-                      Colors.red,
+                      Icons.medical_information_rounded,
+                      [Color(0xFF2DAF7D), Color(0xFF1E8C67)],
                     ),
                   ],
                 );
               },
             ),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 24.0),
             _buildRecentAppointmentsCard(context),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 24.0),
             _buildMedicineInventoryCard(context),
           ],
         ),
