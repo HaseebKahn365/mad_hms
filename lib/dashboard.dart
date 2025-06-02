@@ -153,9 +153,17 @@ class AdminDashboard extends StatelessWidget {
   Widget _buildRecentAppointmentsCard(BuildContext context) {
     // Static data for recent appointments
     final List<Map<String, String>> recentAppointments = [
-      {'patient': 'Alice Smith', 'doctor': 'Dr. John Doe', 'time': '10:00 AM'},
-      {'patient': 'Bob Johnson', 'doctor': 'Dr. Jane Roe', 'time': '11:30 AM'},
-      {'patient': 'Carol White', 'doctor': 'Dr. John Doe', 'time': '02:00 PM'},
+      {'patient': 'Ahmed Khan', 'doctor': 'Dr. Fatima Ali', 'time': '10:00 AM'},
+      {
+        'patient': 'Yusuf Rahman',
+        'doctor': 'Dr. Omar Siddiqui',
+        'time': '11:30 AM',
+      },
+      {
+        'patient': 'Aisha Malik',
+        'doctor': 'Dr. Fatima Ali',
+        'time': '02:00 PM',
+      },
     ];
 
     return Card(

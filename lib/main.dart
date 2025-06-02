@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:mad_hms/admin/dashboard.dart';
+import 'package:mad_hms/dashboard.dart';
 import 'package:mad_hms/doctor/doctor_home.dart';
 import 'package:mad_hms/firebase_options.dart';
 import 'package:mad_hms/notifications/get_service_key.dart';
