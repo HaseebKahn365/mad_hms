@@ -23,7 +23,7 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-const bool isDoctorApp = false;
+const bool isDoctorApp = true;
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final PageController _pageController = PageController();
@@ -84,7 +84,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    "Welcome to HMS",
+                    "Welcome to HMS\n By Afifa",
+
+                    textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),

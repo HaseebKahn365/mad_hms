@@ -393,7 +393,8 @@ class PatientProfileProvider with ChangeNotifier {
 
     name = _prefs!.getString('name') ?? '';
     age = _prefs!.getInt('age') ?? 0;
-    uuid = _prefs!.getString('uuid') ?? '1234haseeeb';
+    uuid =
+        _prefs!.getString('uuid') ?? Uuid().v4(); // Ensure UUID is always set
     description = _prefs!.getString('description') ?? '';
     profilePictureUrl = _prefs!.getString('profilePictureUrl') ?? '';
     myFMCToken = _prefs!.getString('myFMCToken') ?? '';

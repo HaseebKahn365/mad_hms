@@ -17,7 +17,7 @@ import 'package:provider/provider.dart';
 //app can be used by patients, doctors, and admin
 enum AppFor { patient, doctor, admin }
 
-AppFor currUserType = AppFor.patient;
+AppFor currUserType = AppFor.doctor;
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -173,7 +173,7 @@ class _SplashScreenState extends State<SplashScreen> {
       await patientProfileProvider.initPrefs();
 
       if (patientProfileProvider.createdAt.isBefore(
-        DateTime.now().subtract(const Duration(seconds: 123123)),
+        DateTime.now().subtract(const Duration(seconds: 123213)),
       )) {
         log(
           'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(patientProfileProvider.createdAt).inSeconds} seconds',
