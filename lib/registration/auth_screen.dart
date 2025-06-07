@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mad_hms/arb_screens/AdminDashboardScreen.dart';
+import 'package:mad_hms/arb_screens/DoctorHomeScreen.dart';
+import 'package:mad_hms/arb_screens/PatientHomeScreen.dart';
+import 'package:tap_debouncer/tap_debouncer.dart';
 
 import '../registration/registration.dart';
 
@@ -54,15 +58,38 @@ class _AuthScreenState extends State<AuthScreen> {
     });
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement authentication logic
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing authentication...')),
+        SnackBar(content: Text(_isSignUp ? 'Registering...' : 'Logging in...')),
       );
 
-      // Navigate to appropriate home screen based on role
-      // This will be implemented later
+      // Simulate a network call
+      await Future.delayed(const Duration(seconds: 2), () {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        //Navigate to proper screen: ie DoctorHomeScreen, PatientHomeScreen or AdminDashboardScreen based on role
+        if (widget.role == AppFor.doctor) {
+          //using material route pushReplacement to navigate to the doctor home screen
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const DoctorHomeScreen()),
+          );
+        } else if (widget.role == AppFor.patient) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
+          );
+        } else if (widget.role == AppFor.admin) {
+          // Navigate to Admin Dashboard Screen
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AdminDashboardScreen(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid role selected')),
+          );
+        }
+      });
     }
   }
 
@@ -112,6 +139,18 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ),
+                  //use toggle only in patient and doctor roles
+                  if (widget.role != AppFor.admin) ...[
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _toggleAuthMode,
+                      child: Text(
+                        _isSignUp
+                            ? 'Already have an account? Sign In'
+                            : 'Create an account',
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
 
                   // Fields based on role
@@ -210,18 +249,28 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 24),
 
                   // Submit button
-                  ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      _isSignUp ? 'Register' : 'Login',
-                      style: const TextStyle(fontSize: 18),
-                    ),
+                  TapDebouncer(
+                    cooldown: const Duration(seconds: 2),
+                    onTap: () async {
+                      await _submitForm();
+                    },
+                    builder:
+                        (BuildContext context, TapDebouncerFunc? onTap) =>
+                            ElevatedButton(
+                              onPressed: onTap,
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                _isSignUp ? 'Register' : 'Login',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
                   ),
                 ],
               ),
