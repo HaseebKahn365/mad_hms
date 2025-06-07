@@ -2,8 +2,6 @@ import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:mad_hms/admin/dashboard.dart';
-import 'package:mad_hms/doctor/doctor_home.dart';
 import 'package:mad_hms/firebase_options.dart';
 import 'package:mad_hms/notifications/get_service_key.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
@@ -15,49 +13,49 @@ import 'package:mad_hms/themes/provider.dart';
 import 'package:provider/provider.dart';
 
 //app can be used by patients, doctors, and admin
-enum AppFor { patient, doctor, admin }
+// enum AppFor { patient, doctor, admin }
 
-AppFor currUserType = AppFor.patient;
+// AppFor currUserType = AppFor.patient;
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialize the notification service
   //if user is admin, show admin dashboard
-  if (currUserType == AppFor.admin) {
-    showSplashScreen = false; // Skip splash screen for admin
-    // Show admin dashboard
-    log('Running as Admin on Web');
-    runApp(
-      ChangeNotifierProvider(
-        create:
-            (context) => M3ThemeProvider(
-              seedColor: Colors.blue, // Seed color for the theme
-              themeMode: ThemeMode.system, // Default theme mode
-            ),
-        child: MaterialApp(
-          title: 'MAD Assignment 4 - Admin',
-          debugShowCheckedModeBanner: false,
-          themeMode: ThemeMode.system,
-          theme:
-              M3ThemeProvider(
-                seedColor: Colors.blue,
-                themeMode: ThemeMode.light,
-              ).lightTheme,
-          darkTheme:
-              M3ThemeProvider(
-                seedColor: Colors.blue,
-                themeMode: ThemeMode.dark,
-              ).darkTheme,
-          home: const AdminDashboard(
-            // Show admin dashboard
-            key: Key('admin_dashboard'),
-          ),
-        ),
-      ),
-    );
-    return;
-  }
+  // if (currUserType == AppFor.admin) {
+  //   showSplashScreen = false; // Skip splash screen for admin
+  //   // Show admin dashboard
+  //   log('Running as Admin on Web');
+  //   runApp(
+  //     ChangeNotifierProvider(
+  //       create:
+  //           (context) => M3ThemeProvider(
+  //             seedColor: Colors.blue, // Seed color for the theme
+  //             themeMode: ThemeMode.system, // Default theme mode
+  //           ),
+  //       child: MaterialApp(
+  //         title: 'MAD Assignment 4 - Admin',
+  //         debugShowCheckedModeBanner: false,
+  //         themeMode: ThemeMode.system,
+  //         theme:
+  //             M3ThemeProvider(
+  //               seedColor: Colors.blue,
+  //               themeMode: ThemeMode.light,
+  //             ).lightTheme,
+  //         darkTheme:
+  //             M3ThemeProvider(
+  //               seedColor: Colors.blue,
+  //               themeMode: ThemeMode.dark,
+  //             ).darkTheme,
+  //         home: const AdminDashboard(
+  //           // Show admin dashboard
+  //           key: Key('admin_dashboard'),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //   return;
+  // }
 
   NotificationService.requestPermission();
   NotificationService.getFCMToken()
@@ -82,7 +80,7 @@ main() async {
         ChangeNotifierProvider(
           create:
               (context) => M3ThemeProvider(
-                seedColor: Colors.blue, // Seed color for the theme
+                seedColor: Colors.indigo, // Seed color for the theme
                 themeMode: ThemeMode.system, // Default theme mode
               ),
         ),
@@ -161,73 +159,28 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> handleNavigation() async {
-    // Navigate to home screen after 2 seconds
-
-    // navigate to registration screen is createdAt is less than 5 seconds in the patient profile provider
-    if (!isDoctorApp) {
-      final patientProfileProvider = Provider.of<PatientProfileProvider>(
+    await Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacement(
         context,
-        listen: false,
+        PageRouteBuilder(
+          pageBuilder:
+              (context, animation, secondaryAnimation) =>
+                  const RegistrationScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
       );
-
-      await patientProfileProvider.initPrefs();
-
-      if (patientProfileProvider.createdAt.isBefore(
-        DateTime.now().subtract(const Duration(seconds: 123123)),
-      )) {
-        log(
-          'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(patientProfileProvider.createdAt).inSeconds} seconds',
-        );
-        // If createdAt is more than 5 seconds ago, navigate to home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const PatientHome()),
-        );
-      } else {
-        log(
-          'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(patientProfileProvider.createdAt).inSeconds} seconds',
-        );
-        // If createdAt is less than 5 seconds ago, navigate to registration screen
-        Future.delayed(const Duration(seconds: 2), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-          );
-        });
-      }
-    } else {
-      // also do the same as above to see if doctor profile is created
-      final doctorProfileProvider = Provider.of<DoctorProfileProvider>(
-        context,
-        listen: false,
-      );
-
-      await doctorProfileProvider.initPrefs();
-
-      if (doctorProfileProvider.createdAt.isBefore(
-        DateTime.now().subtract(const Duration(seconds: 123123)),
-      )) {
-        log(
-          'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(doctorProfileProvider.createdAt).inSeconds} seconds',
-        );
-        // If createdAt is more than 5 seconds ago, navigate to home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DoctorHome()),
-        );
-      } else {
-        log(
-          'Navigating to Home Screen because created secs ago: ${DateTime.now().difference(doctorProfileProvider.createdAt).inSeconds} seconds',
-        );
-        // If createdAt is less than 5 seconds ago, navigate to registration screen
-        Future.delayed(const Duration(seconds: 2), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-          );
-        });
-      }
-    }
+    });
   }
 
   @override
@@ -237,10 +190,22 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.local_hospital_rounded,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Arooba\'s\nHospital Management System',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(12.0),
               child: Container(
-                height: 200,
+                height: 300,
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
@@ -251,7 +216,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ],
                 ),
                 child: Image.asset(
-                  'assets/images/logo.jpg',
+                  'assets/images/hp.jpeg',
                   height: 240,
                   fit: BoxFit.cover,
                 ),
@@ -260,10 +225,6 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 24),
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            const Text(
-              'Hospital Management System',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
           ],
         ),
       ),

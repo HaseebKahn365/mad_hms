@@ -141,7 +141,7 @@ class M3ThemeProvider extends ChangeNotifier {
       surface:
           HSLColor.fromColor(
             darkColorScheme.surface,
-          ).withLightness(0.001).toColor(),
+          ).withLightness(0.1).toColor(),
     );
 
     log('Surface color overridden with darker shade');

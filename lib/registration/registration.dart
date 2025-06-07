@@ -1,20 +1,6 @@
-// create a page view to register the user as a patient or doctor:
-
-/*
-Here is how :
-the first page view will give user two options to register as a patient or doctor.
-which will take user to the respective registration page.
-registration page allow the user to either login or signup.
-once the user is registered or logged in, it will take the user to the home page using pushReplacement.
- */
-
 import 'package:flutter/material.dart';
-import 'package:mad_hms/doctor/doctor_home.dart';
-import 'package:mad_hms/patient/patient_home.dart';
-import 'package:mad_hms/patient/profile.dart';
-import 'package:mad_hms/registration/doctor_registration/doctor_registration_new.dart';
-import 'package:mad_hms/registration/patient_registration.dart';
-import 'package:provider/provider.dart';
+
+import 'auth_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -23,43 +9,18 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-const bool isDoctorApp = true;
+enum AppFor { patient, doctor, admin }
+
+// Global variable to track selected role
+AppFor selectedRole = AppFor.patient;
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final PageController _pageController = PageController();
 
-  void _goToAuthPage(bool doctor) {
+  void _goToAuthPage() {
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeIn,
-    );
-  }
-
-  void _goToHome() {
-    // You can handle navigation outside this widget, or pop to root, etc.
-    // For now, just show a dialog as a placeholder.
-    Provider.of<PatientProfileProvider>(
-      context,
-      listen: false,
-    ).saveAndRefreshProfileData(); // Ensure patient data is loaded
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PatientHome()),
-    );
-  }
-
-  _goToDoctorHome() {
-    // Navigate to Doctor Home
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DoctorHome()),
-    );
-  }
-
-  void _goBack() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
     );
   }
 
@@ -70,156 +31,128 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          // First page: Choose Patient or Doctor
+          // First page: Role selection with radio buttons
           Center(
             child: Padding(
               padding: const EdgeInsets.all(32.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.medical_services,
-                    size: 120,
-                    color: Colors.blue,
+                  Text(
+                    "Selected Role: ${selectedRole == AppFor.patient
+                        ? "Patient"
+                        : selectedRole == AppFor.doctor
+                        ? "Doctor"
+                        : "Admin"}",
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  //role based icon
+                  const SizedBox(height: 16),
+                  Icon(
+                    selectedRole == AppFor.patient
+                        ? Icons.person
+                        : selectedRole == AppFor.doctor
+                        ? Icons.medical_services
+                        : Icons.admin_panel_settings,
+                    size: 256,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 32),
-                  const Text(
-                    "Welcome to HMS",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  // Patient Radio Button
+                  RadioListTile<AppFor>(
+                    title: const Text('Patient'),
+                    value: AppFor.patient,
+                    groupValue: selectedRole,
+                    onChanged: (AppFor? value) {
+                      setState(() {
+                        selectedRole = value!;
+                      });
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Register as a Patient or Doctor to get started.",
-                    style: TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
+                  // Doctor Radio Button
+                  RadioListTile<AppFor>(
+                    title: const Text('Doctor'),
+                    value: AppFor.doctor,
+                    groupValue: selectedRole,
+                    onChanged: (AppFor? value) {
+                      setState(() {
+                        selectedRole = value!;
+                      });
+                    },
                   ),
-                  const SizedBox(height: 40),
-                  // Sexy Patient Button
-                  if (!isDoctorApp)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () => _goToAuthPage(false),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          padding: EdgeInsets.zero,
-                          elevation: 4,
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.blueAccent.withOpacity(0.3),
-                        ),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF42A5F5), Color(0xFF478DE0)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                                SizedBox(width: 12),
-                                Text(
-                                  "Register as Patient",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  // Admin Radio Button
+                  RadioListTile<AppFor>(
+                    title: const Text('Admin'),
+                    value: AppFor.admin,
+                    groupValue: selectedRole,
+                    onChanged: (AppFor? value) {
+                      setState(() {
+                        selectedRole = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  // Continue Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _goToAuthPage,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    ),
-                  // Sexy Doctor Button
-                  if (isDoctorApp)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () => _goToAuthPage(true),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          padding: EdgeInsets.zero,
-                          elevation: 4,
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.purpleAccent.withOpacity(0.3),
-                        ),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF8E24AA), Color(0xFF5E35B1)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(
-                                  Icons.medical_information,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                                SizedBox(width: 12),
-                                Text(
-                                  "Register as Doctor",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(fontSize: 18),
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
           ),
-          // Second page: Auth screen with back button
-          Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _goBack,
-              ),
-              title: Text(
-                isDoctorApp ? 'Doctor Registration' : 'Patient Registration',
-              ),
-              automaticallyImplyLeading: false,
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.black,
-            ),
-            body:
-                isDoctorApp
-                    ? DoctorRegistration(onAuthenticated: _goToDoctorHome)
-                    : PatientRegistration(onAuthenticated: _goToHome),
+
+          // Second page: Auth screen based on selected role
+          // Scaffold(
+          //   appBar: AppBar(
+          //     leading: IconButton(
+          //       icon: const Icon(Icons.arrow_back),
+          //       onPressed: _goBack,
+          //     ),
+          //     title: Text(
+          //       selectedRole == AppFor.doctor
+          //           ? 'Doctor Registration'
+          //           : selectedRole == AppFor.admin
+          //           ? 'Admin Registration'
+          //           : 'Patient Registration',
+          //     ),
+          //     automaticallyImplyLeading: false,
+          //   ),
+          //   // body:
+          //   //     selectedRole == AppFor.doctor
+          //   //         ? DoctorRegistration(onAuthenticated: _goToDoctorHome)
+          //   //         : PatientRegistration(onAuthenticated: _goToHome),
+          //   // Note: You'll
+          // need to add AdminRegistration if needed
+          // ),
+          AuthScreen(
+            role: selectedRole,
+            goBack: () {
+              _pageController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeIn,
+              );
+            },
           ),
         ],
       ),
     );
   }
 }
+
+//create auth screen here:
