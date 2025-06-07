@@ -34,7 +34,7 @@ main() async {
   //             themeMode: ThemeMode.system, // Default theme mode
   //           ),
   //       child: MaterialApp(
-  //         title: 'MAD Assignment 4 - Admin',
+  //         title: 'Arooba - Admin',
   //         debugShowCheckedModeBanner: false,
   //         themeMode: ThemeMode.system,
   //         theme:
@@ -127,7 +127,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MAD Assignment 4',
+      title: 'Arooba',
       debugShowCheckedModeBanner: false,
 
       themeMode: Provider.of<M3ThemeProvider>(context).themeMode,
@@ -190,11 +190,27 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.local_hospital_rounded,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12.0),
+              child: Container(
+                height: 70,
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8.0,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/images/ar.png',
+                  height: 240,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ), // Add your logo image
+
             const SizedBox(height: 16),
             const Text(
               'Arooba\'s\nHospital Management System',
@@ -222,9 +238,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
             ), // Add your logo image
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
           ],
         ),
       ),

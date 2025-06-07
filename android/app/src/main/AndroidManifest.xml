@@ -8,10 +8,8 @@
     <!-- Permissions for image picker -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <application
-        android:label="mad_hms"
+    <uses-permission android:name="android.permission.CAMERA" />    <application
+        android:label="Arooba"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

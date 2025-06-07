@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -51,7 +52,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen>
         children: const [
           PatientProfileScreen(),
           MedicineGridScreen(),
-          Center(child: Text('Doctors List Content')),
+          DoctorAppointmentScreen(),
         ],
       ),
     );
@@ -64,7 +65,7 @@ XFile globalImageFile = XFile('');
 //global var names for patient info for global state
 String globalName = 'Arooba Khan';
 String globalEmail = 'Arooba@gmail.com';
-String globalSpeciality = 'Physio Therapist';
+String globalProblem = 'Headache';
 String globalAddress = 'Swabi, KPK, Pakistan';
 
 class PatientProfileScreen extends StatefulWidget {
@@ -82,8 +83,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   final TextEditingController _emailController = TextEditingController(
     text: globalEmail,
   );
-  final TextEditingController _specialityController = TextEditingController(
-    text: globalSpeciality,
+  final TextEditingController _problemController = TextEditingController(
+    text: globalProblem,
   );
   final TextEditingController _addressController = TextEditingController(
     text: globalAddress,
@@ -93,7 +94,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _specialityController.dispose();
+    _problemController.dispose();
     _addressController.dispose();
     super.dispose();
   }
@@ -246,13 +247,13 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           ),
           const SizedBox(height: 8),
           TextFormField(
-            controller: _specialityController,
+            controller: _problemController,
             decoration: const InputDecoration(
-              labelText: 'Speciality',
+              labelText: 'Problem',
               border: OutlineInputBorder(),
             ),
             onChanged: (value) {
-              globalSpeciality = value;
+              globalProblem = value;
             },
           ),
           const SizedBox(height: 8),
@@ -423,6 +424,311 @@ class MedicineCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class DoctorProfile {
+  final String name;
+  final String imageUrl;
+  final String specialization;
+  final int rating;
+  final double consultationFee;
+  final List<String> availableDays;
+  final List<String> availableSlots;
+
+  DoctorProfile({
+    required this.name,
+    required this.imageUrl,
+    required this.specialization,
+    required this.rating,
+    required this.consultationFee,
+    required this.availableDays,
+    required this.availableSlots,
+  });
+}
+
+class DoctorAppointmentScreen extends StatefulWidget {
+  const DoctorAppointmentScreen({super.key});
+
+  @override
+  _DoctorAppointmentScreenState createState() =>
+      _DoctorAppointmentScreenState();
+}
+
+class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
+  List<DoctorProfile> doctors = [
+    DoctorProfile(
+      name: 'Dr. Harry Potter',
+      imageUrl:
+          'https://th.bing.com/th/id/OIP.TYzWK2HqKaqczU98GKeshQHaHZ?rs=1&pid=ImgDetMain',
+      specialization: 'Wizarding Medicine',
+      rating: 5,
+      consultationFee: 2500.00,
+      availableDays: ['Mon', 'Wed', 'Fri'],
+      availableSlots: ['9:00 AM', '11:00 AM', '2:00 PM'],
+    ),
+    DoctorProfile(
+      name: 'Dr. Sara Khan',
+      imageUrl:
+          'https://img.freepik.com/premium-photo/young-pakistani-doctor-girl-celebrating-pakistan-14th-august-day_993198-167.jpg',
+      specialization: 'General Physician',
+      rating: 4,
+      consultationFee: 1500.00,
+      availableDays: ['Tue', 'Thu', 'Sat'],
+      availableSlots: ['10:00 AM', '1:00 PM', '3:00 PM'],
+    ),
+    DoctorProfile(
+      name: 'Dr. Sania Mirza',
+      imageUrl:
+          'https://bmidoctors.com/wp-content/uploads/2024/03/weight-loss-doctor-1-scaled.jpg',
+      specialization: 'Nutrition Specialist',
+      rating: 5,
+      consultationFee: 2000.00,
+      availableDays: ['Mon', 'Tue', 'Wed', 'Thu'],
+      availableSlots: ['8:00 AM', '12:00 PM', '4:00 PM'],
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          ...doctors.map((doctor) {
+            return DoctorCard(
+              doctor: doctor,
+              onBookAppointment: () => _showAppointmentDialog(context, doctor),
+            );
+          }),
+
+          const SizedBox(height: 120),
+          //text field for setting target FCM token
+          TextField(
+            decoration: InputDecoration(
+              labelText: 'Target Doctor Id',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              targetFCMToken = value; // Update the global token
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAppointmentDialog(BuildContext context, DoctorProfile doctor) {
+    String? selectedDay;
+    String? selectedSlot;
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Book Appointment with ${doctor.name}'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Select Day'),
+                  items:
+                      doctor.availableDays.map((day) {
+                        return DropdownMenuItem(value: day, child: Text(day));
+                      }).toList(),
+                  onChanged: (value) => selectedDay = value,
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Select Time Slot'),
+                  items:
+                      doctor.availableSlots.map((slot) {
+                        return DropdownMenuItem(value: slot, child: Text(slot));
+                      }).toList(),
+                  onChanged: (value) => selectedSlot = value,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedDay != null && selectedSlot != null) {
+                    _confirmAppointment(
+                      context,
+                      doctor,
+                      selectedDay!,
+                      selectedSlot!,
+                    );
+                  }
+                },
+                child: Text('Book Now'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _confirmAppointment(
+    BuildContext context,
+    DoctorProfile doctor,
+    String day,
+    String slot,
+  ) {
+    Navigator.pop(context); // Close the selection dialog
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Appointment Confirmed!'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Doctor: ${doctor.name}'),
+                Text('Specialization: ${doctor.specialization}'),
+                Text('Date: $day'),
+                Text('Time: $slot'),
+                Text('Fee: Rs. ${doctor.consultationFee}'),
+                SizedBox(height: 16),
+                Text('We have sent the details to your email.'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  // Send a notification to targetFCMToken
+                  bool
+                  success = await NotificationService.sendNotificationToPatient(
+                    targetFCMToken,
+                    'Appointment Confirmation',
+                    'Your appointment with ${doctor.name} on $day at $slot has been confirmed. Fee: Rs. ${doctor.consultationFee}, ',
+
+                    data: {
+                      'doctorName': doctor.name,
+                      'day': day,
+                      'slot': slot,
+                      'fee': doctor.consultationFee.toString(),
+                    },
+                  );
+
+                  Navigator.pop(context);
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Notification sent to $targetFCMToken'),
+                      ),
+                    );
+                  } else {}
+
+                  // Close the dialog
+                  await NotificationService.getFCMToken().then(
+                    (token) => log('My FCM Token: $token'),
+                  );
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+}
+
+String targetFCMToken = ''; // Replace with your FCM token
+
+class DoctorCard extends StatelessWidget {
+  final DoctorProfile doctor;
+  final VoidCallback onBookAppointment;
+
+  const DoctorCard({
+    super.key,
+    required this.doctor,
+    required this.onBookAppointment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        doctor.name,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        doctor.specialization,
+                        style: TextStyle(color: Colors.grey[600]),
+                        textAlign: TextAlign.center,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          return Icon(
+                            index < doctor.rating
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 16,
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            CircleAvatar(
+              radius: 50,
+              backgroundImage: NetworkImage(doctor.imageUrl),
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Rs. ${doctor.consultationFee}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: onBookAppointment,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Text('Take Appointment'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

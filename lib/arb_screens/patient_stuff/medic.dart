@@ -61,3 +61,48 @@ List<MedicineItem> medicines = [
     rating: 4.3,
   ),
 ];
+
+//SIMILARLY FOR DOCTORS:
+
+class DoctorProfile {
+  final String name;
+  final String imageUrl;
+  final String specialization;
+  final int rating; // out of 5 stars (integer)
+  final double consultationFee; // in Rs.
+
+  DoctorProfile({
+    required this.name,
+    required this.imageUrl,
+    required this.specialization,
+    required this.rating,
+    required this.consultationFee,
+  });
+}
+
+List<DoctorProfile> doctors = [
+  DoctorProfile(
+    name: 'Dr. Harry Potter',
+    imageUrl:
+        'https://th.bing.com/th/id/OIP.TYzWK2HqKaqczU98GKeshQHaHZ?rs=1&pid=ImgDetMain',
+    specialization: 'Wizarding Medicine',
+    rating: 5,
+    consultationFee: 12500.00,
+  ),
+  DoctorProfile(
+    name: 'Dr. Sara Khan',
+    imageUrl:
+        'https://img.freepik.com/premium-photo/young-pakistani-doctor-girl-celebrating-pakistan-14th-august-day_993198-167.jpg',
+    specialization: 'General Physician',
+    rating: 4,
+    consultationFee: 1500.00,
+  ),
+  DoctorProfile(
+    name: 'Dr. Sania Mirza',
+    imageUrl:
+        'https://bmidoctors.com/wp-content/uploads/2024/03/weight-loss-doctor-1-scaled.jpg',
+    specialization: 'Nutrition & Weight Loss',
+    rating: 5,
+    consultationFee: 2000.00,
+  ),
+];
