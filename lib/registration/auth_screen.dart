@@ -71,17 +71,90 @@ class _AuthScreenState extends State<AuthScreen> {
         if (widget.role == AppFor.doctor) {
           //using material route pushReplacement to navigate to the doctor home screen
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const DoctorHomeScreen()),
+            PageRouteBuilder(
+              pageBuilder:
+                  (context, animation, secondaryAnimation) =>
+                      const DoctorHomeScreen(),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeOutQuad;
+
+                var tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: curve));
+
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 700),
+            ),
           );
         } else if (widget.role == AppFor.patient) {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
+            PageRouteBuilder(
+              pageBuilder:
+                  (context, animation, secondaryAnimation) =>
+                      const PatientHomeScreen(),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeOutQuad;
+
+                var tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: curve));
+
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 700),
+            ),
           );
         } else if (widget.role == AppFor.admin) {
           // Navigate to Admin Dashboard Screen
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const AdminDashboardScreen(),
+            PageRouteBuilder(
+              pageBuilder:
+                  (context, animation, secondaryAnimation) =>
+                      const AdminDashboardScreen(),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeOutQuad;
+
+                var tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: curve));
+
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 700),
             ),
           );
         } else {

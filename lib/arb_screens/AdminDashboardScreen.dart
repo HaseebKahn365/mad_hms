@@ -343,7 +343,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       Text(
                         'Rs. ${medicine.price.toStringAsFixed(2)}',
                         style: TextStyle(
-                          color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -416,9 +415,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement add doctor functionality
-                  },
+                  onPressed: () {},
                   icon: const Icon(Icons.add),
                   label: const Text('Add Doctor'),
                   style: ElevatedButton.styleFrom(

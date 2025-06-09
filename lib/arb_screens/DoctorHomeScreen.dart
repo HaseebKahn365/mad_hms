@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
@@ -518,6 +519,21 @@ class DocAppointments extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: () async {
+                  // Get the FCM token
+                  String? token = await NotificationService.getFCMToken();
+                  // Copy to clipboard
+                  await Clipboard.setData(ClipboardData(text: token));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('FCM Token copied to clipboard :  $token'),
+                    ),
+                  );
+                },
+                child: const Text('Copy My FCM Token'),
+              ),
             ],
           ),
         ),

@@ -2,8 +2,8 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mad_hms/arb_screens/patient_stuff/medic.dart';
 import 'package:mad_hms/notifications/notification_service.dart';
@@ -109,15 +109,6 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         setState(() {
           globalImageFile = pickedFile;
         });
-
-        final String fileName =
-            DateTime.now().millisecondsSinceEpoch.toString();
-        final File file = File(pickedFile.path);
-        try {
-          final ref = FirebaseStorage.instance.ref().child('arb/$fileName.jpg');
-          await ref.putFile(file);
-          //make the picker
-        } catch (e) {}
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -516,6 +507,21 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
               targetFCMToken = value; // Update the global token
             },
           ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              String? fcmToken = await NotificationService.getFCMToken();
+              //copy to clipboard
+              await Clipboard.setData(ClipboardData(text: fcmToken));
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('FCM token copied to clipboard: $fcmToken'),
+                ),
+              );
+            },
+            child: const Text('Copy My FCM Token'),
+          ),
         ],
       ),
     );
@@ -607,8 +613,8 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
                   bool
                   success = await NotificationService.sendNotificationToPatient(
                     targetFCMToken,
-                    'Appointment Confirmation',
-                    'Your appointment with ${doctor.name} on $day at $slot has been confirmed. Fee: Rs. ${doctor.consultationFee}, ',
+                    'Appointment Request',
+                    '$globalName appointment with ${doctor.name} on $day at $slot has been confirmed. Fee: Rs. ${doctor.consultationFee}, ',
 
                     data: {
                       'doctorName': doctor.name,
